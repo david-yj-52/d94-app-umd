@@ -1,0 +1,91 @@
+server:
+  port: ${APP_PORT:8081}
+  shutdown: graceful
+  # context-path 없음: UI 가 부르는 경로 = 백엔드가 받는 경로 (UMD 제거 후 직결 대비)
+
+# UMD 자체 API 가 없으므로 Swagger 비활성 (API 문서는 백엔드가 제공)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+spring:
+  application:
+    name: d94-app-umd
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  mvc:
+    formcontent:
+      filter:
+        # PUT/PATCH form 본문을 미리 읽어버리면 프록시가 원본 본문을 전달할 수 없다
+        enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      # Redis ACL 사용자는 SPRING_DATA_REDIS_USERNAME 환경 변수로 지정 (미지정 시 default 사용자)
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+      # 명령 타임아웃. umd.*.poll-timeout(XREAD BLOCK)보다 길어야 한다 (UmdSettingsValidator 가 기동 시 검사)
+      timeout: 3s
+
+umd:
+  # server(AP-01) | local(Home PC) | both(개발·테스트 전용)
+  mode: ${UMD_MODE:server}
+  # 인스턴스마다 고유. server: 응답 Stream d94:umd:rep:{instance-id} / local: Consumer 이름
+  instance-id: ${UMD_INSTANCE_ID:${HOSTNAME:umd-local}}
+
+  server:
+    request-timeout: ${UMD_REQUEST_TIMEOUT:30s}
+    poll-timeout: 2s
+    max-request-body: 1MB
+    max-pending: 500
+    public-paths: []
+    require-local-alive: true
+    # UMD 자체 오류 응답에만 붙이는 CORS Origin (백엔드 CORS 허용 목록과 동일하게)
+    cors-origins: ${UMD_CORS_ORIGINS:}
+
+  local:
+    consumer-concurrency: 16
+    poll-timeout: 2s
+    max-response-body: 5MB
+    reclaim-idle: 60s
+    reclaim-interval: 30s
+    # path-prefix 최장 일치. 경로는 바꾸지 않고 uri 로 그대로 호출한다.
+    routes: []
+
+management:
+  server:
+    # actuator 전용 내부 포트 (외부 미공개). health / prometheus 는 이 포트로 인증 없이 조회한다.
+    port: ${MANAGEMENT_PORT:8091}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+# /actuator/info (management 포트)
+info:
+  app:
+    name: d94-app-umd
+    module: @module-name@
+    service: @service-name@
+    version: @project.version@
+    env: ${APP_ENV:LOCAL}
+    mode: ${umd.mode}
+    instance-id: ${umd.instance-id}
+
+application:
+  security:
+    jwt:
+      # [server 모드 전용] d94-query 와 동일한 키를 사용해야 UI 토큰 검증이 가능하다. local 모드는 불필요.
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: 900000 # 15 minutes (UMD 는 발급하지 않으며 JwtService 기동용)
+    # CORS 는 백엔드 소유. UMD 는 자체 오류 응답에만 umd.server.cors-origins 를 사용한다.

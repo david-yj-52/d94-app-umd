@@ -1,0 +1,16 @@
+# UMD local 모드 라우팅 (umd.local.routes). config/routes.yml 로 복사해서 사용한다.
+#
+# - path-prefix 최장 일치. "/v1/cira" 는 /v1/cira, /v1/cira/** 와 일치하고 /v1/cirax 와는 일치하지 않는다.
+# - 경로는 바꾸지 않는다: UI 가 부른 /v1/cira/issues 를 그대로 {uri}/v1/cira/issues 로 호출한다.
+#   (백엔드에 context-path 가 있으면 uri 에 포함: http://host.docker.internal:8080/tsh)
+# - 일치하는 route 가 없으면 404 UMD_NO_ROUTE.
+# - 이 표는 나중에 백엔드를 서버로 올릴 때 Ingress / Gateway 라우팅 규칙으로 그대로 옮긴다.
+umd:
+  local:
+    routes:
+      - id: cira
+        path-prefix: /v1/cira
+        uri: http://host.docker.internal:8082
+      - id: default
+        path-prefix: /
+        uri: http://host.docker.internal:8080

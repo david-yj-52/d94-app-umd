@@ -1,0 +1,43 @@
+# UMD local 모드 (Home PC). 배포 절차: david94/note/process/deploy/umd.md
+#   cp config/routes.example.yml config/routes.yml   # 로컬 백엔드 주소에 맞게 수정
+#   docker compose -f docker-compose.local.yml --env-file .env.local up -d
+#
+# 인바운드 포트를 열지 않는다. AP-02 Redis 로 아웃바운드 연결만 사용한다.
+services:
+  umd-local:
+    image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
+    container_name: d94-umd-local
+    restart: unless-stopped
+    ports:
+      # actuator 만, 호스트 내부 전용 (앱 포트는 publish 하지 않음 — local 은 HTTP API 가 없다)
+      - "127.0.0.1:${MANAGEMENT_HOST_PORT:-8092}:8091"
+    environment:
+      UMD_MODE: local
+      # Consumer 이름. 집 PC 마다 고유 (재기동 후에도 같은 값이어야 자기 Pending 을 이어받기 쉽다)
+      UMD_INSTANCE_ID: ${UMD_INSTANCE_ID:-umd-home01}
+      APP_ENV: ${APP_ENV:-HOME}
+
+      # AP-02 Redis (아웃바운드)
+      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_SSL_ENABLED: ${REDIS_SSL_ENABLED:-false}
+      # Redis ACL 사용자를 쓰면 주석 해제 (빈 값으로 두면 안 됨)
+      # SPRING_DATA_REDIS_USERNAME: umd-local
+
+      # 로컬 백엔드 라우팅 (umd.local.routes) — 아래 마운트한 파일에서 읽는다
+      SPRING_CONFIG_ADDITIONAL_LOCATION: optional:file:/app/config/routes.yml
+
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError}
+    volumes:
+      - ./config/routes.yml:/app/config/routes.yml:ro
+    # 호스트에서 직접 실행 중인 백엔드를 http://host.docker.internal:{port} 로 호출할 수 있게 한다
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # 처리 중인 로컬 호출이 끝날 때까지 대기 (consumer 종료 대기 25s + 여유)
+    stop_grace_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"

@@ -1,0 +1,50 @@
+# ===== IntelliJ IDEA =====
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ===== Java / JDK =====
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ===== Maven =====
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===== Spring Boot =====
+application-local.yml
+application-local.properties
+application-*.yml
+!application.yml
+!application-prod.yml
+HELP.md
+
+# ===== OS 관련 =====
+.DS_Store
+Thumbs.db
+
+# ===== 환경설정 / 시크릿 =====
+.env
+.env.local
+*.env
+# ===== UMD local 라우팅 (환경별) =====
+config/routes.yml
+.env.server

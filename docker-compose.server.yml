@@ -1,0 +1,47 @@
+# UMD server 모드 (AP-01). 배포 절차: david94/note/process/deploy/umd.md
+#   docker compose -f docker-compose.server.yml --env-file .env.server up -d
+services:
+  umd-server:
+    image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
+    container_name: d94-umd-server
+    restart: unless-stopped
+    ports:
+      # API (UI / Next.js 서버가 호출) — 외부 공개
+      - "${APP_PORT:-8081}:8081"
+      # actuator (health, prometheus) — 인증 없음. 기본 호스트 내부 전용, 외부 공개 금지
+      - "${MANAGEMENT_BIND:-127.0.0.1}:${MANAGEMENT_HOST_PORT:-8091}:8091"
+    environment:
+      UMD_MODE: server
+      # 응답 Stream 이름(d94:umd:rep:{id}). 컨테이너를 다시 만들어도 바뀌지 않도록 고정값. 서버마다 고유
+      UMD_INSTANCE_ID: ${UMD_INSTANCE_ID:-umd-ap01}
+      UMD_REQUEST_TIMEOUT: ${UMD_REQUEST_TIMEOUT:-30s}
+      # UMD 자체 오류 응답(401/413/503/504)에만 붙일 CORS Origin. 백엔드 CORS 허용 목록과 같게
+      UMD_CORS_ORIGINS: ${UMD_CORS_ORIGINS:-}
+      APP_ENV: ${APP_ENV:-PROD}
+
+      # AP-02 Redis
+      REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_SSL_ENABLED: ${REDIS_SSL_ENABLED:-false}
+      # Redis ACL 사용자를 쓰면 주석 해제 (빈 값으로 두면 안 됨)
+      # SPRING_DATA_REDIS_USERNAME: umd-server
+
+      # d94-query 와 같은 키 (UI 토큰 사전 검증용)
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError}
+    # spring.lifecycle.timeout-per-shutdown-phase(30s) + 여유. 처리 중 요청이 응답을 받고 종료되도록
+    stop_grace_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - d94-shared
+
+# 최초 1회만: docker network create d94-shared
+networks:
+  d94-shared:
+    external: true

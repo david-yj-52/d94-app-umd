@@ -1,0 +1,112 @@
+﻿<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>tsh.d94</groupId>
+        <artifactId>d94-lib-pom</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../lib/d94-lib-pom/pom.xml</relativePath>
+    </parent>
+
+    <groupId>tsh.d94</groupId>
+    <artifactId>d94.app.umd</artifactId>
+    <packaging>jar</packaging>
+    <name>d94-umd</name>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <module-name>d94</module-name>
+        <service-name>app-umd</service-name>
+
+        <d94-lib-core>1.0.0-SNAPSHOT</d94-lib-core>
+
+        <!-- Boot 3.4.1 기본(1.20.x)은 Docker 29 (최소 API 1.44)와 통신하지 못해 상향 -->
+        <testcontainers.version>1.21.4</testcontainers.version>
+    </properties>
+
+    <dependencies>
+
+
+        <dependency>
+            <groupId>tsh.d94</groupId>
+            <artifactId>d94-lib-core</artifactId>
+            <version>${d94-lib-core}</version>
+        </dependency>
+
+        <!-- UMD는 DB를 사용하지 않으므로 d94-lib-data(ORM) 의존성은 두지 않는다. -->
+
+        <!-- Redis Stream 통합 테스트 (Docker 미기동 시 자동 skip) -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <!--
+        d94-app-umd는 별도 GitHub 저장소라 로컬 relativePath(../../lib/d94-lib-pom/pom.xml)로 parent를
+        찾지 못하는 경우(CI 등) GitHub Packages에서 parent pom과 d94-lib-core를 내려받습니다.
+    -->
+    <repositories>
+        <repository>
+            <id>github-d94</id>
+            <url>https://maven.pkg.github.com/david-yj-52/d94-lib-pom</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>github-lib-core</id>
+            <url>https://maven.pkg.github.com/david-yj-52/d94-lib-core</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                    <useDefaultDelimiters>false</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <compilerArgs>--enable-preview</compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+

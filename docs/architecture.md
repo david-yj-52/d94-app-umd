@@ -2,7 +2,7 @@
 
 > 하나의 서비스(`d94-app-umd`)가 **두 모드**로 Redis 양쪽에서 동작하는 **HTTP ↔ Redis Stream 투명 프록시**.
 > 방화벽 인바운드를 열지 않고 클라우드 UI 가 Home PC 의 REST 백엔드를 호출할 수 있게 한다.
-> 상위 문서: `david94/note/architecture/phase1-architecture.md` · 개발 기록: `note/feature/rest api/`
+> 상위 문서: workspace `david94/note/architecture/phase1-architecture.md` (UMD 저장소 밖) · 개발 이력: [note/](../note/README.md)
 
 ---
 
@@ -92,10 +92,11 @@ UMD 두 모드만 쓰므로 UMD 내부에 둔다. 엔트리는 flat String Map (
 
 | 요청 필드 (`StreamHttpRequest`) | 응답 필드 (`StreamHttpReply`) |
 |---|---|
-| `corrId`, `replyTo`, `method`, `path`, `query`, `headers`(JSON), `body`, `bodyEncoding`, `ts`, `deadline` | `corrId`, `status`, `headers`(JSON), `body`, `bodyEncoding`, `ts` |
+| **필수** `corrId`, `replyTo`, `method`, `path`(`/` 로 시작), `ts`, `deadline` · 선택 `query`, `headers`(JSON), `body`, `bodyEncoding`(body 가 있으면 필수) | **필수** `corrId`, `status`(100~599), `ts` · 선택 `headers`(JSON), `body`, `bodyEncoding` |
 
 - `bodyEncoding`: UTF-8 텍스트 계열(`application/json`, `text/*`, `+json`, `+xml` 등)은 `utf8`, 그 외는 `base64` (`StreamBodyCodec`).
 - 헤더명은 소문자로 정규화.
+- 읽는 쪽(`fromFields`)은 **모르는 필드를 무시**하고 필수 필드가 없으면 거부한다 → 선택 필드 추가는 하위 호환, 필수 필드 변경은 호환 불가 (L1 I5).
 
 ---
 
@@ -160,6 +161,7 @@ tsh.d94.umd
 | local | 일치하는 route 없음 | 404 | `UMD_NO_ROUTE` |
 | local | 백엔드 연결 실패 | 502 | `UMD_LOCAL_BACKEND_UNAVAILABLE` |
 | local | 응답 본문 > 5MB | 502 | `UMD_RESPONSE_TOO_LARGE` |
+| 공통 | 예상하지 못한 내부 오류 | 500 | `UMD_INTERNAL` |
 
 - 401/413/503 등 Redis 앞에서 거절한 요청은 Stream 에 적재되지 않는다.
 - UMD 자체 오류에 한해, 요청 Origin 이 `umd.server.cors-origins` 에 있으면 최소 CORS 헤더를 붙인다 (브라우저가 상태를 읽을 수 있게).
@@ -171,6 +173,7 @@ tsh.d94.umd
 | 상황 | 동작 |
 |---|---|
 | local 미기동 | server 가 생존 신호로 감지해 **즉시 503** (30초 대기 없음, Redis 미적재) |
+| local 비정상 종료 직후 | 생존 신호(TTL 15초)와 server 캐시(1초)가 남아 있는 **최대 약 16초** 동안은 요청이 적재되고, local 이 30초 안에 돌아오지 않으면 **504** |
 | server 먼저 기동 / local 먼저 기동 | 양쪽 모두 Consumer Group 을 멱등 생성 → 순서 무관 |
 | local 처리 중 죽음 | 엔트리가 Pending 에 남음 → `PendingReclaimer` 가 회수(XPENDING+XCLAIM, 60초 이상 대기분) |
 | 회수·지연 요청 | local 이 **deadline 을 먼저 확인** → 만료면 백엔드를 부르지 않고 XACK (타임아웃 후 POST 중복 실행 방지) |
@@ -202,7 +205,7 @@ tsh.d94.umd
 
 | 모드 | 지표 (`/actuator/prometheus`) | health |
 |---|---|---|
-| server | `umd_proxy_request_seconds{method,status,outcome}`, `umd_proxy_rejected_total{reason}`, `umd_stream_pending`, `umd_stream_reply_late_total`, `umd_stream_reply_invalid_total`, `umd_stream_read_errors_total` | `redis`, `replyStream`, `localAgent`(정보용, 항상 UP) |
+| server | `umd_proxy_request_seconds{method,status,outcome}`, `umd_proxy_rejected_total{reason}`(reason = `UmdErrorCode` 이름: `PAYLOAD_TOO_LARGE`·`OVERLOADED`·`LOCAL_UNAVAILABLE`·`REDIS_UNAVAILABLE`), `umd_stream_pending`, `umd_stream_reply_late_total`, `umd_stream_reply_invalid_total`, `umd_stream_read_errors_total` | `redis`, `replyStream`, `localAgent`(정보용, 항상 UP) |
 | local | `umd_local_dispatch_seconds{method,route,status,outcome}`, `umd_local_inflight`, `umd_local_expired_total`, `umd_local_reclaimed_total`, `umd_local_invalid_total`, `umd_local_read_errors_total` | `redis`, `requestConsumer` |
 
 - 경로는 태그로 쓰지 않는다 (값 종류 무한). `status` 는 `2xx` 등 클래스.
@@ -241,4 +244,4 @@ tsh.d94.umd
 | 새 로컬 서비스 | local `routes` 에 한 줄 추가 |
 | Phase 2 (다중 server) | `UMD_INSTANCE_ID` 만 서버별로 다르게 (응답 Stream 이 인스턴스별) |
 | 직결 전환 | UMD·Redis 제거, `routes` → Ingress/Gateway 규칙, UI `BACKEND_URL` 변경 |
-| 개발 가이드 | `note/feature/rest api/ref/ui-development-guide.md`, `backend-development-guide.md` |
+| 개발 가이드 | [integration/ui-guide.md](integration/ui-guide.md), [integration/backend-guide.md](integration/backend-guide.md) |

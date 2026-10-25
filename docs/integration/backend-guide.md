@@ -1,7 +1,7 @@
 # Backend 개발 가이드 — 통신 (UMD 경유 REST)
 
 > 대상: Home PC 에서 실행되는 Local Backend (Spring Boot). UMD(local) 가 호출하는 REST 서비스의 통신 규칙.
-> 관련: `../01-development-plan.md`, `ui-development-guide.md`
+> 관련: [architecture.md](../architecture.md), [ui-guide.md](ui-guide.md)
 
 ---
 

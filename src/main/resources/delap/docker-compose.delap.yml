@@ -1,6 +1,6 @@
 # UMD local 모드 (Home PC). 배포 절차: david94/note/process/deploy/umd.md
 #   cp config/routes.example.yml config/routes.yml   # 로컬 백엔드 주소에 맞게 수정
-#   docker compose -f docker-compose.local.yml --env-file .env.local up -d
+#   docker compose -f docker-compose.delap.yml --env-file .env.delap up -d
 #
 # 인바운드 포트를 열지 않는다. AP-02 Redis 로 아웃바운드 연결만 사용한다.
 services:

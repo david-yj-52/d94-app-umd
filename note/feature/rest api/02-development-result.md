@@ -84,8 +84,8 @@
 |---|---|
 | JWT 키 | `JwtService` 를 server 보안 설정에서만 Import → **local 은 JWT 키 불필요** |
 | Redis 보안 | `REDIS_SSL_ENABLED`, ACL 사용자(`SPRING_DATA_REDIS_USERNAME`) 지원, ACL 예시는 배포 문서 |
-| compose | `docker-compose.server.yml`(AP-01, 8081 공개, actuator 127.0.0.1) / `docker-compose.local.yml`(Home PC, 앱 포트 미공개, routes 파일 마운트, `host.docker.internal`) |
-| 설정 파일 | `.env.server.example`, `.env.local.example`, `config/routes.example.yml` (실제 `config/routes.yml`, `.env.server` 는 git 제외) |
+| compose | `docker-compose.server.yml`(AP-01, 8081 공개, actuator 127.0.0.1) / `docker-compose.delap.yml`(Home PC, 앱 포트 미공개, routes 파일 마운트, `host.docker.internal`) |
+| 설정 파일 | `.env.server.example`, `.env.delap.example`, `config/routes.example.yml` (실제 `config/routes.yml`, `.env.server` 는 git 제외) |
 | 문서 | `umd-architecture.md` 전면 재작성, `deploy/umd.md` 두 모드 기준 재작성, 본 결과 문서 |
 
 ---

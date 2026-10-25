@@ -417,7 +417,7 @@ XREADGROUP home-backend {instanceId} COUNT n BLOCK 2s   (동시 처리 여유만
 | 필수 env | `REDIS_*`, `JWT_SECRET_KEY`, `UMD_CORS_ORIGINS` | `REDIS_*`, `UMD_LOCAL_ROUTES`(또는 설정 파일 마운트) |
 | 네트워크 | 인바운드 8081 | 아웃바운드 Redis 만, 로컬 백엔드는 같은 docker 네트워크 또는 `host.docker.internal` |
 
-이미지는 하나(`ghcr.io/david-yj-52/d94-app-umd`), compose 파일만 `docker-compose.server.yml` / `docker-compose.local.yml` 로 나눈다.
+이미지는 하나(`ghcr.io/david-yj-52/d94-app-umd`), compose 파일만 `docker-compose.server.yml` / `docker-compose.delap.yml` 로 나눈다.
 
 ---
 

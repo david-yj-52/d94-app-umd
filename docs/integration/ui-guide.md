@@ -1,7 +1,7 @@
 # UI 개발 가이드 — 통신 (UMD 경유 REST)
 
 > 대상: `d94-web` (Next.js). UMD 를 거쳐 Local 백엔드를 호출하는 API 개발 규칙.
-> 관련: `../01-development-plan.md`, `backend-development-guide.md`
+> 관련: [architecture.md](../architecture.md), [backend-guide.md](backend-guide.md)
 
 ---
 
@@ -86,12 +86,14 @@
 | POST / PATCH | **자동 재시도 금지.** `Idempotency-Key` 가 있으면 같은 키로만 재시도 |
 
 > 503 은 집 PC(Local) 가 꺼져 있을 때 **즉시** 돌아온다. 504 는 30초 대기 후 돌아온다.
+> 단, local 이 비정상 종료된 직후 약 16초 동안은 생존 신호가 남아 있어 503 대신 30초 뒤 504 가 올 수 있다.
+> 원인 구분은 `X-Umd-Error`(OVERLOADED / LOCAL_UNAVAILABLE / REDIS_UNAVAILABLE / SHUTTING_DOWN)로 하되, d94-web 프록시가 응답 헤더를 전달하도록 정비(§5 #3)되기 전에는 UI 에서 보이지 않는다.
 
 ### 4-3. 타임아웃
 
 - UMD 는 30초 안에 응답하지 못하면 504 를 준다.
 - Next.js 프록시의 백엔드 호출 타임아웃은 **35초** (UMD 보다 길게) — 프록시가 먼저 끊어 상태코드를 잃지 않도록.
-- 30초 넘게 걸리는 작업은 백엔드와 **202 + 작업 조회** 방식으로 설계한다 (`backend-development-guide.md` 5장).
+- 30초 넘게 걸리는 작업은 백엔드와 **202 + 작업 조회** 방식으로 설계한다 ([backend-guide.md](backend-guide.md) 5장).
 
 ### 4-4. 추적
 

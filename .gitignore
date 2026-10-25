@@ -48,3 +48,5 @@ Thumbs.db
 # ===== UMD local 라우팅 (환경별) =====
 config/routes.yml
 .env.server
+
+logs

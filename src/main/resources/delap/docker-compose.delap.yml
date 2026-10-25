@@ -1,8 +1,11 @@
-# UMD local 모드 (Home PC). 배포 절차: david94/note/process/deploy/umd.md
-#   cp config/routes.example.yml config/routes.yml   # 로컬 백엔드 주소에 맞게 수정
+# UMD local 모드 (Home PC). 배포 절차: docs/deployment.md §4
+#   cp config/routes.example.yml config/routes.yml   # 게이트웨이(백엔드) 주소에 맞게 수정. 반드시 기동 전에 만든다
+#   (게이트웨이 네트워크 befw-cloud-network 가 이미 있어야 한다)
 #   docker compose -f docker-compose.delap.yml --env-file .env.delap up -d
 #
 # 인바운드 포트를 열지 않는다. AP-02 Redis 로 아웃바운드 연결만 사용한다.
+# 요청은 routes.yml 의 uri 로 보낸다 — 게이트웨이 컨테이너는 공유 네트워크의 컨테이너 이름으로,
+# 호스트에서 직접 띄운 프로세스는 host.docker.internal 로 호출한다.
 services:
   umd-local:
     image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
@@ -34,6 +37,9 @@ services:
     # 호스트에서 직접 실행 중인 백엔드를 http://host.docker.internal:{port} 로 호출할 수 있게 한다
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # 게이트웨이(cloud-gateway 등)와 같은 네트워크 → routes.yml 에서 컨테이너 이름으로 호출
+    networks:
+      - backend
     # 처리 중인 로컬 호출이 끝날 때까지 대기 (consumer 종료 대기 25s + 여유)
     stop_grace_period: 40s
     logging:
@@ -41,3 +47,10 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
+
+# 게이트웨이(gateway-cloud-gateway-1)·Eureka·Config 서버가 붙어 있는 기존 docker 네트워크.
+# 이 compose 는 네트워크를 만들지 않는다 (external) — 다른 이름이면 .env.delap 의 SHARED_NETWORK_NAME 으로 바꾼다.
+networks:
+  backend:
+    external: true
+    name: ${SHARED_NETWORK_NAME:-befw-cloud-network}

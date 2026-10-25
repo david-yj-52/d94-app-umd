@@ -15,8 +15,8 @@
     TLS / ACL 사용자(umd-server, umd-local) / 방화벽(AP-01, Home PC IP)
 
 [3] AP-01 (server)                         [4] Home PC (local)
-    .env.server 작성                          .env.local + config/routes.yml 작성
-    compose -f docker-compose.server.yml up    compose -f docker-compose.local.yml up
+    .env.server 작성                          .env.delap + config/routes.yml 작성
+    compose -f docker-compose.server.yml up    compose -f docker-compose.delap.yml up
                      └──────────── 둘 다 healthy → UI BACKEND_URL = AP-01:8081 ───────┘
 ```
 
@@ -105,8 +105,14 @@ curl -s localhost:8091/actuator/info    # "mode":"server"
 **최초 1회**
 
 ```bash
-cp .env.delap.example .env.local                 # REDIS_* 채우기
-cp config/routes.example.yml config/routes.yml   # 로컬 백엔드 주소로 수정
+cp .env.delap.example .env.delap                 # REDIS_* 채우기 (SHARED_NETWORK_NAME 기본 befw-cloud-network)
+cp config/routes.example.yml config/routes.yml   # 게이트웨이(백엔드) 주소로 수정 — 반드시 기동 전에
+```
+
+구성 (delap): UMD local 은 **게이트웨이 하나로만** 보낸다. Eureka·Config 서버는 UMD 와 관계없다 (게이트웨이가 Eureka 로 서비스에 분배).
+
+```
+Redis ─▶ UMD local ─(routes.yml)─▶ gateway-cloud-gateway-1 :10001 ─(Eureka)─▶ d94-query 등
 ```
 
 `config/routes.yml` 예:
@@ -115,17 +121,22 @@ cp config/routes.example.yml config/routes.yml   # 로컬 백엔드 주소로 �
 umd:
   local:
     routes:
-      - id: cira
-        path-prefix: /v1/cira
-        uri: http://host.docker.internal:8082
-      - id: default
+      - id: gateway
         path-prefix: /
-        uri: http://host.docker.internal:8080
+        uri: http://gateway-cloud-gateway-1:10001
 ```
 
-- 경로는 바꾸지 않는다. 백엔드에 context-path 가 있으면 uri 에 포함 (`http://host.docker.internal:8080/tsh`).
-- routes 는 **기동 시에만** 읽는다 (compose 가 `./config/routes.yml` 을 읽기 전용 마운트 → `SPRING_CONFIG_ADDITIONAL_LOCATION`). 바꾼 뒤 `up -d --force-recreate` 또는 `restart` 로 재기동한다. 새 서비스 패턴이 생기면 `config/routes.example.yml` 에도 예시를 남긴다.
-- 호스트에서 직접 띄운 백엔드는 `host.docker.internal`, 같은 compose/네트워크의 컨테이너는 컨테이너 이름으로.
+- 경로는 바꾸지 않는다. UI `BACKEND_URL` 에 `/tsh/api` 가 있으므로 게이트웨이에는 `/tsh/api/v1/...` 가 그대로 도착한다 → 게이트웨이에 `Path=/tsh/**` route 가 있어야 한다. context-path 는 `BACKEND_URL` 과 uri 중 한 곳에만 둔다.
+- uri 주소: 같은 네트워크(`SHARED_NETWORK_NAME`)의 컨테이너는 **컨테이너 이름 + 컨테이너 내부 포트**, 호스트에서 직접 띄운 프로세스나 포트를 publish 한 컨테이너는 `host.docker.internal:{호스트 포트}`.
+- compose 는 `SHARED_NETWORK_NAME`(기본 `befw-cloud-network`, 게이트웨이·Eureka·Config 네트워크) 네트워크를 **external** 로 붙는다. 게이트웨이 컨테이너도 같은 네트워크에 있어야 하고, 네트워크가 없으면 기동이 실패한다.
+- `config/routes.yml` 없이 기동하면 docker 가 그 자리에 빈 디렉터리를 만들어 마운트한다 → routes 가 비어 모든 요청이 404 `UMD_NO_ROUTE`. 디렉터리가 생겼으면 지우고 파일로 다시 만든다.
+- routes 는 **기동 시에만** 읽는다 (compose 가 `./config/routes.yml` 을 읽기 전용 마운트 → `SPRING_CONFIG_ADDITIONAL_LOCATION`). jar·이미지에 들어가지 않으므로 바꿀 때 빌드는 필요 없고, `up -d --force-recreate` 또는 `restart` 로 재기동한다. 새 서비스 패턴이 생기면 `config/routes.example.yml` 에도 예시를 남긴다.
+
+연결 확인 (토큰이 없으므로 401/403 이면 게이트웨이·백엔드까지 닿은 것, 404 면 게이트웨이 경로 규칙 문제):
+
+```bash
+docker exec d94-umd-local wget -S -qO- http://gateway-cloud-gateway-1:10001/tsh/api/v1/interface-tests 2>&1 | head -3
+```
 
 **배포 / 업데이트**
 
@@ -142,6 +153,7 @@ curl -s localhost:8092/actuator/info    # "mode":"local"
 | `MANAGEMENT_HOST_PORT` | `8092` | actuator 호스트 포트, `127.0.0.1` 전용 (컨테이너 안은 server 와 같은 8091) |
 | `UMD_INSTANCE_ID` | `umd-home01` | Consumer 이름. 집 PC 마다 고유 |
 | `REDIS_HOST` (필수), `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL_ENABLED` | | AP-02 (아웃바운드) |
+| `SHARED_NETWORK_NAME` | `befw-cloud-network` | 게이트웨이와 공유하는 기존 docker 네트워크 (external) |
 
 - JWT 키는 필요 없다 (local 은 토큰을 검증하지 않고 백엔드로 그대로 전달).
 - 인바운드 포트를 열지 않는다. 라우터 포트포워딩 불필요.

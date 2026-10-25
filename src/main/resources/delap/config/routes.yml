@@ -1,0 +1,8 @@
+# delap 실제 설정 — 서버의 ~/data/app/umd/config/routes.yml 로 복사 (git 제외 파일)
+# 모든 요청을 게이트웨이 컨테이너(befw-cloud-network)로 보낸다.
+umd:
+  local:
+    routes:
+      - id: gateway
+        path-prefix: /
+        uri: http://gateway-cloud-gateway-1:10001

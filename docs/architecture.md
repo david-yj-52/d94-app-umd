@@ -2,7 +2,7 @@
 
 > 하나의 서비스(`d94-app-umd`)가 **두 모드**로 Redis 양쪽에서 동작하는 **HTTP ↔ Redis Stream 투명 프록시**.
 > 방화벽 인바운드를 열지 않고 클라우드 UI 가 Home PC 의 REST 백엔드를 호출할 수 있게 한다.
-> 상위 문서: workspace `david94/note/architecture/phase1-architecture.md` (UMD 저장소 밖) · 개발 이력: [note/](../note/README.md)
+> 상위 문서: workspace `david94/note/architecture/phase1-architecture.md` (UMD 저장소 밖) · 개발 이력: [note/](feature/README.md)
 
 ---
 

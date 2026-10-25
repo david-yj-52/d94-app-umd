@@ -12,8 +12,8 @@
 
 ## 1. 결과 요약
 
-- 루트 `AGENTS.md`(L1, 148줄)와 L2 4개(`common`, `server`, `local`, test) + 각 `CLAUDE.md`(`@AGENTS.md`).
-- 현재 상태 문서를 `note/` 에서 `docs/` 로 분리, `note/` 는 이력으로 표시하고 기본 로드에서 제외.
+- 루트 `../../../../../AGENTS.md`(L1, 148줄)와 L2 4개 (`common`, `server`, `local`, test) + 각 `CLAUDE.md`(`@AGENTS.md`).
+- 현재 상태 문서를 `../../../../../note` 에서 `docs/` 로 분리, `note/` 는 이력으로 표시하고 기본 로드에서 제외.
 - 불변식 10개(I1~I10)를 L1 §5 에 정리 — 항상 로드됨.
 - Maven Wrapper 로 셸에서 `./mvnw -B clean verify` 가능. **134건 통과, Skipped 0**.
 - `ContextDocsTest` 가 문서-코드 불일치를 빌드 실패로 잡음.
@@ -25,17 +25,17 @@
 | 항목 | 결과 |
 |---|---|
 | Maven Wrapper | `mvnw`, `mvnw.cmd`, `.mvn/wrapper/maven-wrapper.properties` (wrapper 3.3.2, only-script, Maven 3.9.9). IntelliJ 번들 Maven 으로 생성 |
-| JDK | PATH 에 없음 → `JAVA_HOME` 지정 필요 (이 PC: `~/.jdks/jbr-21.0.11`). [dev-setup](../../../docs/dev-setup.md) 에 기록 |
+| JDK | PATH 에 없음 → `JAVA_HOME` 지정 필요 (이 PC: `~/.jdks/jbr-21.0.11`). [dev-setup](../../dev-setup.md) 에 기록 |
 | 기준선 | 변경 전 `./mvnw -B clean verify` → 126건, Skipped 0, BUILD SUCCESS (Docker 29.8.2) |
 
 ### 1단계 — 골격
 
 | 항목 | 결과 |
 |---|---|
-| L1 | `AGENTS.md` + `CLAUDE.md` — 지도, 요약, 스택, 명령어, 불변식, 금지, 작업 절차, 체크리스트, 커밋 규칙, 동기화 매핑표, docs 색인 |
+| L1 | `../../../../../AGENTS.md` + `CLAUDE.md` — 지도, 요약, 스택, 명령어, 불변식, 금지, 작업 절차, 체크리스트, 커밋 규칙, 동기화 매핑표, docs 색인 |
 | 이동 (`git mv`) | `note/architecture/umd-architecture.md` → `docs/architecture.md`, `ref/ui-development-guide.md` → `docs/integration/ui-guide.md`, `ref/backend-development-guide.md` → `docs/integration/backend-guide.md` |
-| 복사 | workspace `note/process/deploy/umd.md` → `docs/deployment.md` (원본은 4단계에서 링크로 교체 예정) |
-| 신규 | `docs/conventions.md`, `docs/dev-setup.md`, `docs/known-issues.md`, `note/README.md` |
+| 복사 | workspace `../../../../../note/process/deploy/umd.md` → `docs/deployment.md` (원본은 4단계에서 링크로 교체 예정) |
+| 신규 | `docs/conventions.md`, `docs/dev-setup.md`, `docs/known-issues.md`, `../../../../../note/README.md` |
 
 ### 2단계 — L2 · ADR · 양식
 
@@ -50,9 +50,9 @@
 | 검사 | 기준 |
 |---|---|
 | 링크 | 모든 `.md` 상대 링크 대상 존재, **저장소 밖 경로 금지** |
-| 짝 | `AGENTS.md` 옆 `CLAUDE.md` 에 `@AGENTS.md` |
+| 짝 | `../../../../../AGENTS.md` 옆 `CLAUDE.md` 에 `@AGENTS.md` |
 | 지도 | 모든 L2 가 L1 §0 에 등록 |
-| 클래스 | `src/main/java` 의 클래스가 가장 가까운 `AGENTS.md` 에 등장 |
+| 클래스 | `src/main/java` 의 클래스가 가장 가까운 `../../../../../AGENTS.md` 에 등장 |
 | 오류 코드 | `UmdErrorCode` 의 `UMD_*` → `docs/architecture.md` |
 | 설정 | `UmdProperties` 필드(kebab-case) → `docs/architecture.md` |
 | 지표 | `Counter/Timer/Gauge.builder("umd.…")` → Prometheus 이름(`_total`/`_seconds`) → `docs/architecture.md` |
@@ -65,13 +65,13 @@
 | 저장소 | 변경 |
 |---|---|
 | d94-web (미커밋) | `docs/architecture.md` 요청 흐름에 UMD 홉·`X-Umd-Error`·ui-guide 링크, `src/lib/AGENTS.md` §4 백엔드 경로·ui-guide 링크, `docs/known-issues.md` 프록시 라우트 미정비 항목. `npm run docs:check` 오류 0. 기존 미커밋 변경(배포 절의 vercel.json 설명, `vercel.json`)은 건드리지 않음 |
-| workspace (git 아님) | 루트 `AGENTS.md`(저장소 지도·요청 경로·저장소 간 규칙) + `CLAUDE.md`. `note/process/deploy/umd.md` 를 UMD `docs/deployment.md` 링크로 교체 (원본 사본은 세션 scratchpad 에 보관) |
+| workspace (git 아님) | 루트 `../../../../../AGENTS.md`(저장소 지도·요청 경로·저장소 간 규칙) + `CLAUDE.md`. `note/process/deploy/umd.md` 를 UMD `docs/deployment.md` 링크로 교체 (원본 사본은 세션 scratchpad 에 보관) |
 
 - 저장소 간 링크는 GitHub URL (`…/d94-app-umd/blob/main/docs/…`) → UMD `docs/` 가 main 에 push 되기 전까지 404.
 
 ### 5단계 — 효과 검증
 
-새 컨텍스트의 에이전트에게 Markdown(L1 → L2 → docs)만 읽게 하고(코드·설정·`note/` 금지) 계획 §4 의 질문 6개를 물음.
+새 컨텍스트의 에이전트에게 Markdown(L1 → L2 → docs)만 읽게 하고(코드·설정·`../../../../../note` 금지) 계획 §4 의 질문 6개를 물음.
 
 | 질문 | 결과 |
 |---|---|
@@ -108,7 +108,7 @@
 | `UMD_INTERNAL`(500) 이 아키텍처 오류 표에 없음 | `docs/architecture.md` §7 에 추가 |
 | 배포 문서가 "main push → 이미지 푸시" 로 설명 | 실제 workflow 는 `deploy` 브랜치·`v*` 태그 → `docs/deployment.md` 수정 |
 | `latest` 태그는 main 일 때만 붙는데 workflow 는 main 에서 돌지 않음, compose 기본값은 `latest` | `docs/known-issues.md` 등록 (코드 미수정, 결정 필요) |
-| init·rest api 이력 문서의 폐기 설계·"미커밋"·`NEXT_PUBLIC_API_URL`·`/api/...` | 본문 유지, `note/README.md` 에 바뀐 사실 기록 |
+| init·rest api 이력 문서의 폐기 설계·"미커밋"·`NEXT_PUBLIC_API_URL`·`/api/...` | 본문 유지, `../../../../../note/README.md` 에 바뀐 사실 기록 |
 | 모드 전용 클래스 10개의 Javadoc `[server]`/`[local]` 접두사 누락 | `docs/conventions.md` §6 예외로 등록 (코드 미수정) |
 
 ## 5. 계획 대비 변경 사항
@@ -121,7 +121,7 @@
 
 ## 6. 갱신한 문서
 
-`AGENTS.md`, `CLAUDE.md`, L2 `AGENTS.md`·`CLAUDE.md` 4쌍, `docs/architecture.md`(링크·`UMD_INTERNAL`), `docs/integration/{ui,backend}-guide.md`(링크), `docs/deployment.md`(CI 트리거), `docs/{conventions,dev-setup,known-issues}.md`, `docs/decisions/*`, `docs/templates/*`, `note/README.md`
+`../../../../../AGENTS.md`, `CLAUDE.md`, L2 `AGENTS.md`·`CLAUDE.md` 4쌍, `docs/architecture.md`(링크·`UMD_INTERNAL`), `docs/integration/{ui,backend}-guide.md`(링크), `docs/deployment.md`(CI 트리거), `docs/{conventions,dev-setup,known-issues}.md`, `docs/decisions/*`, `docs/templates/*`, `note/README.md`
 
 ## 7. 남은 작업
 

@@ -10,7 +10,7 @@
 | **L1 프로젝트** | 요약, 명령어, 불변식, 절차 | 이 파일 | 항상 |
 | **L2 패키지** | 클래스 표, 처리 흐름, 패키지 규칙 | 아래 트리 | 해당 패키지 작업 시 |
 | docs | 현재 상태의 상세 | [docs/](docs/) | 필요할 때 링크로 |
-| 이력 | 기능별 계획·결과 기록 | [note/](note/README.md) | **기본으로 읽지 않음** |
+| 이력 | 기능별 계획·결과 기록 | [note/](docs/feature/README.md) | **기본으로 읽지 않음** |
 
 ```
 AGENTS.md (L1)
@@ -94,9 +94,9 @@ docker-compose.{server,local}.yml, .env.{server,local}.example, Dockerfile, .git
 
 ## 7. 작업 절차 (기능 단위)
 
-1. **계획:** `note/feature/{기능}/01-development-plan.md` ([양식](docs/templates/feature-plan.md))
+1. **계획:** `docs/feature` ([양식](docs/templates/feature-plan.md))
 2. **개발:** 각 단계에서 테스트를 함께 작성 ([테스트 L2](src/test/java/tsh/d94/umd/AGENTS.md))
-3. **결과:** `note/feature/{기능}/02-development-result.md` ([양식](docs/templates/feature-result.md))
+3. **결과:** `docs/feature` ([양식](docs/templates/feature-result.md))
 4. **현재 상태 반영:** §10 매핑표에 따라 `docs/`·L2 갱신. `note/` 에만 쓰고 끝내지 않습니다
 5. **결정:** 설계 결정이면 [docs/decisions/](docs/decisions/) 에 ADR
 

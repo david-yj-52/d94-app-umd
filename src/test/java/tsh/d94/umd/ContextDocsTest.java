@@ -145,7 +145,9 @@ class ContextDocsTest {
 	void every_env_example_key_is_documented() {
 		String docs = read(ROOT.resolve("docs/dev-setup.md")) + read(ROOT.resolve("docs/deployment.md"));
 		List<String> errors = new ArrayList<>();
-		for (String example : List.of(".env.server.example", ".env.delap.example")) {
+		for (String example : List.of(
+			"src/main/resources/server/.env.server.example",
+			"src/main/resources/delap/.env.delap.example")) {
 			for (String key : matches(ENV_KEY, read(ROOT.resolve(example)), 1)) {
 				if (!docs.contains(key)) {
 					errors.add(example + " 의 " + key);

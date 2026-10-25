@@ -3,7 +3,7 @@
 | 항목 | 내용 |
 |---|---|
 | 대상 | `d94-app-umd` (+ 교차 저장소 링크: `d94-web`, workspace `david94/`) |
-| 참조 모델 | `d94-web` — `AGENTS.md` SSOT, 4계층 문서, `docs/`, ADR 0001~0003, `npm run docs:check` |
+| 참조 모델 | `d94-web` — `../../../../../AGENTS.md` SSOT, 4계층 문서, `docs/`, ADR 0001~0003, `npm run docs:check` |
 | 목표 | 어떤 AI 도구로 열어도 **UMD 의 불변식을 깨지 않고**, 문서가 **코드와 어긋나지 않는** 상태 |
 | 작성일 | 2026-10-25 |
 
@@ -24,8 +24,8 @@
 
 | # | 문제 | 영향 |
 |---|---|---|
-| P1 | `AGENTS.md` / `CLAUDE.md` 없음 | 어떤 도구도 자동으로 컨텍스트를 받지 못함. 매 세션 코드를 처음부터 읽어야 함 |
-| P2 | 현재 상태 문서가 `note/`(이력 폴더)에 섞여 있음 | 현재 문서와 폐기된 설계를 AI 가 구분하지 못함 |
+| P1 | `../../../../../AGENTS.md` / `CLAUDE.md` 없음 | 어떤 도구도 자동으로 컨텍스트를 받지 못함. 매 세션 코드를 처음부터 읽어야 함 |
+| P2 | 현재 상태 문서가 `../../../../../note`(이력 폴더)에 섞여 있음 | 현재 문서와 폐기된 설계를 AI 가 구분하지 못함 |
 | P3 | **폐기된 설계가 이력 문서에 그대로 남아 있음** | 아래 1-3 표. AI 가 eventNm 게이트웨이·lib-core 규격을 "현재"로 오인할 수 있음 |
 | P4 | 저장소 밖 경로 참조 (`david94/note/architecture/phase1-architecture.md`, `david94/note/process/deploy/umd.md`) | UMD 는 별도 GitHub 저장소 → 단독 클론·CI·클라우드 세션에서 링크가 끊김 |
 | P5 | **셸에서 빌드·테스트를 실행할 수 없음** — `mvn`, `java` 가 PATH 에 없음 (`~/.jdks/jbr-21.0.11` 만 존재, Maven Wrapper 없음) | AI 가 변경을 스스로 검증할 피드백 루프가 없음. 가장 큰 공백 |
@@ -49,7 +49,7 @@
 
 | d94-web 원칙 | UMD 적용 |
 |---|---|
-| ADR 0001: `AGENTS.md` SSOT, `CLAUDE.md` 는 `@AGENTS.md` 한 줄 | **그대로** |
+| ADR 0001: `../../../../../AGENTS.md` SSOT, `CLAUDE.md` 는 `@AGENTS.md` 한 줄 | **그대로** |
 | ADR 0002: L1 프로젝트 / L2 폴더 / L3 화면 / L4 기능 | L1·L2 만. 화면이 없으므로 **L3 = 처리 흐름**을 L2 문서의 `## 흐름` 섹션으로 둠 |
 | 컴포넌트 카탈로그가 가장 중요한 컨텍스트 | UMD 에서는 **불변식(Invariants)** 이 가장 중요한 컨텍스트 → L1 에 항상 로드 |
 | 규칙(목표)과 예외(현실) 분리 | 그대로 (`docs/conventions.md` 알려진 예외) |
@@ -60,7 +60,7 @@
 
 | 계층 | 위치 | 로드 시점 | 목표 크기 |
 |---|---|---|---|
-| L1 | `AGENTS.md` | 항상 | ≤ 150줄 |
+| L1 | `../../../../../AGENTS.md` | 항상 | ≤ 150줄 |
 | L2 | `src/main/java/tsh/d94/umd/{common,server,local}/AGENTS.md`, `src/test/java/tsh/d94/umd/AGENTS.md` | 해당 패키지 파일을 다룰 때 | 각 ≤ 120줄 |
 | docs | `docs/**` | L1·L2 링크를 따라 필요할 때 | 제한 없음 |
 | 이력 | `note/**` | **읽지 않음** (사람이 지시할 때만) | — |
@@ -97,7 +97,7 @@ d94-app-umd/
     └── test/java/tsh/d94/umd/AGENTS.md + CLAUDE.md   L2 — 테스트 계층·Testcontainers·FakeLocalConsumer
 ```
 
-### 3-1. L1 `AGENTS.md` 목차
+### 3-1. L1 `../../../../../AGENTS.md` 목차
 
 | 절 | 내용 |
 |---|---|
@@ -176,14 +176,14 @@ d94-app-umd/
 | 검사 (실패 = 빌드 실패) | 방법 |
 |---|---|
 | 문서 링크 | 모든 `*.md` 상대 링크 대상 존재 |
-| `AGENTS.md` / `CLAUDE.md` 짝 | 같은 폴더에 `@AGENTS.md` 포함 `CLAUDE.md` |
-| L1 §0 지도 | 모든 `AGENTS.md` 가 지도에 등록 |
+| `../../../../../AGENTS.md` / `CLAUDE.md` 짝 | 같은 폴더에 `@AGENTS.md` 포함 `../../../../../CLAUDE.md` |
+| L1 §0 지도 | 모든 `../../../../../AGENTS.md` 가 지도에 등록 |
 | 클래스 표 | `src/main/java/**/X.java` 마다 가장 가까운 L2 문서에 `X` 등장 |
 | 오류 코드 | `UmdErrorCode` 상수가 `docs/architecture.md` 에 모두 등장 |
 | 설정 키 | `UmdProperties` 필드(kebab-case)가 `docs/architecture.md` §11 에 등장 |
 | 지표 이름 | 코드의 `umd_*` 문자열이 `docs/architecture.md` §10 에 등장 |
 | 환경 변수 | `.env.*.example` 의 키가 `docs/dev-setup.md` 또는 `docs/deployment.md` 에 등장 |
-| 저장소 밖 경로 | `../../` 로 저장소 밖을 가리키는 링크 금지 → GitHub URL 로 (P4 재발 방지) |
+| 저장소 밖 경로 | `../../../note` 로 저장소 밖을 가리키는 링크 금지 → GitHub URL 로 (P4 재발 방지) |
 
 - d94-web 의 git diff 기반 **경고**(코드 변경 대비 문서 미변경)는 JUnit 에 넣지 않는다. CI 에서 의미가 없고, L1 §8 체크리스트로 대신한다.
 - 판별할 수 없는 것(설명이 맞는지)은 검사하지 않는다 — d94-web ADR 0003 과 같은 한계.
@@ -195,7 +195,7 @@ d94-app-umd/
 | 단계 | 작업 | 산출물 | 해결 |
 |---|---|---|---|
 | 0 | **검증 루프 확보**: Maven Wrapper(`mvnw`) 추가, `JAVA_HOME`(JDK 21) 설정 방법 정리, 기준선 `./mvnw -B clean verify` 실행 → 테스트 126건·skipped 0 확인 | `mvnw`, `.mvn/wrapper/` | P5, P6 |
-| 1 | **골격**: L1 `AGENTS.md`+`CLAUDE.md`, `docs/` 생성 및 이동(architecture, integration, deployment), `dev-setup`·`conventions`·`known-issues` 작성, `note/README.md` 이력 표기, 이동에 따른 링크 수정 | 3장 트리의 루트·docs | P1, P2, P3, P4, P7 |
+| 1 | **골격**: L1 `../../../../../AGENTS.md`+`CLAUDE.md`, `docs/` 생성 및 이동(architecture, integration, deployment), `dev-setup`·`conventions`·`known-issues` 작성, `note/README.md` 이력 표기, 이동에 따른 링크 수정 | 3장 트리의 루트·docs | P1, P2, P3, P4, P7 |
 | 2 | **L2**: `common`·`server`·`local`·`test` 문서 4쌍 (클래스 표는 코드에서 복사), ADR 0001~0005, feature 템플릿 2종 | L2 8파일, ADR 5개 | P7 |
 | 3 | **자동 검사**: `ContextDocsTest` 작성 → 위반 0 이 될 때까지 문서 보정. CI(`deploy.yml`)는 `mvn verify` 이므로 추가 설정 없음 | `src/test/.../ContextDocsTest.java` | P8 |
 | 4 | **교차 저장소** (별도 커밋·저장소) | 아래 표 | — |
@@ -208,7 +208,7 @@ d94-app-umd/
 | d94-web | `src/lib/AGENTS.md` §4 "백엔드 API 명세 위치 미문서화" → UMD `docs/integration/ui-guide.md` (GitHub URL) 링크 |
 | d94-web | `docs/architecture.md` 요청 흐름에 UMD 홉, 502/503/504·`X-Umd-Error` 처리 추가 |
 | d94-web | `docs/known-issues.md` 에 프록시 라우트 정비(PATCH/HEAD, 헤더·응답 그대로 전달, 35초 타임아웃) 등록 |
-| david94 (workspace) | 루트 `AGENTS.md`+`CLAUDE.md`: 저장소 지도(web → UMD server → Redis → UMD local → query/backend), 각 저장소 L1 링크. `note/process/deploy/umd.md` 는 UMD 저장소 링크로 교체 |
+| david94 (workspace) | 루트 `../../../../../AGENTS.md`+`CLAUDE.md`: 저장소 지도(web → UMD server → Redis → UMD local → query/backend), 각 저장소 L1 링크. `note/process/deploy/umd.md` 는 UMD 저장소 링크로 교체 |
 
 ### 5단계 — 효과 검증 질문 (새 세션, 코드 탐색 없이 문서 기준)
 
@@ -229,7 +229,7 @@ d94-app-umd/
 |---|---|---|---|
 | D1 | `ContextDocsTest` 위반 시 빌드를 실패시킬까 | **실패시킴** | d94-web(연습장)과 달리 UMD 는 배포되는 인프라이고 문서 표면이 작아 비용이 낮음. 문서가 운영 계약(오류 코드·설정)을 겸함 |
 | D2 | 배포 문서 `david94/note/process/deploy/umd.md` 를 UMD 저장소로 옮길까 | **옮김** (workspace 쪽은 링크만) | 별도 저장소에서 compose·env 와 같은 커밋으로 동기화 가능 |
-| D3 | `note/` 이력 문서 처리 | **유지 + `note/README.md` 표기**, 본문 수정 안 함 | 기록 가치 보존. 기본 로드 대상이 아니므로 드리프트 영향 차단 |
+| D3 | `../../../../../note` 이력 문서 처리 | **유지 + `../../../../../note/README.md` 표기**, 본문 수정 안 함 | 기록 가치 보존. 기본 로드 대상이 아니므로 드리프트 영향 차단 |
 | D4 | 커밋 메시지 규칙 | d94-web 과 같은 `type: 설명` | 현재 이력 2건은 규칙 없음. workspace 전체 일관성 |
 
 ---
@@ -237,7 +237,7 @@ d94-app-umd/
 ## 6. 완료 기준
 
 - `./mvnw -B clean verify` 가 셸에서 실행되고 테스트 전체 통과, skipped 0 (`ContextDocsTest` 포함)
-- `AGENTS.md`/`CLAUDE.md` 5쌍, `docs/` 구성 완료, 저장소 밖 링크 0
-- 이력 문서가 기본 로드 대상에서 빠지고 `note/README.md` 로 표시됨
+- `../../../../../AGENTS.md`/`CLAUDE.md` 5쌍, `docs/` 구성 완료, 저장소 밖 링크 0
+- 이력 문서가 기본 로드 대상에서 빠지고 `../../../../../note/README.md` 로 표시됨
 - 5단계 검증 질문 6개를 새 세션이 문서만으로 맞힘
 - 결과 문서 `02-development-result.md` 작성

@@ -97,6 +97,7 @@ curl -s localhost:8091/actuator/info    # "mode":"server"
 | `UMD_INSTANCE_ID` | `umd-ap01` | 응답 Stream 이름. server 마다 고유 |
 | `UMD_REQUEST_TIMEOUT` | `30s` | local 응답 대기 |
 | `UMD_CORS_ORIGINS` | (없음) | UMD 자체 오류 응답에 붙일 Origin (쉼표 구분) |
+| `UMD_SERVER_PUBLICPATHS` | `/tsh/api/v1/auth/**` | 토큰 없이 통과시킬 경로(`umd.server.public-paths`, 쉼표 구분). **로그인·회원가입 경로 필수** — 빠지면 UI 로그인이 `401 UMD_UNAUTHORIZED`. 경로는 UI `BACKEND_URL` 기준(context-path 포함). compose `environment:` 에 적힌 변수만 컨테이너에 전달되므로 `.env` 에만 넣으면 안 된다 |
 | `REDIS_HOST` (필수), `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL_ENABLED` | | AP-02 |
 | `JWT_SECRET_KEY` (필수) | | **d94-query 와 같은 값** |
 

@@ -17,6 +17,9 @@ services:
       UMD_REQUEST_TIMEOUT: ${UMD_REQUEST_TIMEOUT:-30s}
       # UMD 자체 오류 응답(401/413/503/504)에만 붙일 CORS Origin. 백엔드 CORS 허용 목록과 같게
       UMD_CORS_ORIGINS: ${UMD_CORS_ORIGINS:-}
+      # 토큰 없이 통과시킬 경로 (umd.server.public-paths, 쉼표 구분). 로그인·회원가입은 토큰이 없으므로 반드시 포함
+      # 경로는 UI BACKEND_URL 기준 그대로 (context-path 포함)
+      UMD_SERVER_PUBLICPATHS: ${UMD_SERVER_PUBLICPATHS:-/tsh/api/v1/auth/**}
       APP_ENV: ${APP_ENV:-PROD}
 
       # AP-02 Redis

@@ -19,6 +19,8 @@ services:
       # Consumer 이름. 집 PC 마다 고유 (재기동 후에도 같은 값이어야 자기 Pending 을 이어받기 쉽다)
       UMD_INSTANCE_ID: ${UMD_INSTANCE_ID:-umd-home01}
       APP_ENV: ${APP_ENV:-HOME}
+      # 로그·JVM 시간대 (IANA 이름). 시간 계산은 Clock.systemUTC()·epoch 라 표시에만 영향
+      TZ: ${TZ:-America/New_York}
 
       # AP-02 Redis (아웃바운드)
       REDIS_HOST: ${REDIS_HOST:?REDIS_HOST is required}

@@ -94,6 +94,7 @@ curl -s localhost:8091/actuator/info    # "mode":"server"
 | `IMAGE_TAG` | `latest` | 롤백 시 이전 태그 |
 | `APP_PORT` | `8081` | 외부 공개 |
 | `MANAGEMENT_BIND`, `MANAGEMENT_HOST_PORT` | `127.0.0.1`, `8091` | actuator. **외부 공개 금지** |
+| `TZ` | `America/New_York` | 로그·JVM 시간대 (IANA 이름). 시간 계산은 UTC 고정이라 표시에만 영향 |
 | `UMD_INSTANCE_ID` | `umd-ap01` | 응답 Stream 이름. server 마다 고유 |
 | `UMD_REQUEST_TIMEOUT` | `30s` | local 응답 대기 |
 | `UMD_CORS_ORIGINS` | (없음) | UMD 자체 오류 응답에 붙일 Origin (쉼표 구분) |
@@ -152,6 +153,7 @@ curl -s localhost:8092/actuator/info    # "mode":"local"
 |---|---|---|
 | `IMAGE_TAG` | `latest` | server 와 같은 버전 권장 |
 | `MANAGEMENT_HOST_PORT` | `8092` | actuator 호스트 포트, `127.0.0.1` 전용 (컨테이너 안은 server 와 같은 8091) |
+| `TZ` | `America/New_York` | 로그·JVM 시간대 (IANA 이름). 시간 계산은 UTC 고정이라 표시에만 영향 |
 | `UMD_INSTANCE_ID` | `umd-home01` | Consumer 이름. 집 PC 마다 고유 |
 | `REDIS_HOST` (필수), `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL_ENABLED` | | AP-02 (아웃바운드) |
 | `SHARED_NETWORK_NAME` | `befw-cloud-network` | 게이트웨이와 공유하는 기존 docker 네트워크 (external) |

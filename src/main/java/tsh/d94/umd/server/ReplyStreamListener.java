@@ -115,6 +115,27 @@ public class ReplyStreamListener implements SmartLifecycle, StreamListener<Strin
 	}
 
 	/**
+	 * cancelOnError(false) 로 구독이 유지되지만 컨테이너 내부 스레드가 예외로 죽을 경우를 대비해
+	 * 주기적으로 container.isRunning() 을 확인하고 멈췄으면 재기동한다.
+	 */
+	@Scheduled(initialDelayString = "PT30S", fixedDelayString = "PT30S")
+	public void watchContainerHealth() {
+		if (!running || container == null) {
+			return;
+		}
+		if (!container.isRunning()) {
+			log.warn("Reply stream container stopped unexpectedly — restarting");
+			try {
+				container.start();
+				consecutiveReadFailures.set(0);
+				log.info("Reply stream container restarted successfully");
+			} catch (RuntimeException e) {
+				log.warn("Reply stream container restart failed. cause={}", e.getMessage());
+			}
+		}
+	}
+
+	/**
 	 * 응답 Stream 은 local 의 첫 XADD 로 생성되므로 키가 없으면 no-op 이고 다음 주기에 설정된다.
 	 * XADD 는 TTL 을 지우지 않는다.
 	 */

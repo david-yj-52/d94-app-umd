@@ -21,7 +21,7 @@ AP-01 에서 UI 의 모든 요청(`/**`)을 받아 JWT 사전 확인 → 사전 
 | `StreamRequestGateway` | corrId 발급, 대기 등록 → 발행, `StreamCall` 반환 | |
 | `RequestPublisher` | 요청 Stream XADD (MAXLEN ~10000) | |
 | `PendingReplyRegistry` | corrId → Future. 응답·타임아웃·실패 중 먼저 온 것으로 완료 | `max-pending`, `umd_stream_pending` |
-| `ReplyStreamListener` | 응답 Stream XREAD → Future 완료 → XDEL, TTL 갱신, 형식 오류 즉시 502 | SmartLifecycle |
+| `ReplyStreamListener` | 응답 Stream XREAD → Future 완료 → XDEL, TTL 갱신, 형식 오류 즉시 502. 30s 마다 내부 container 상태 감시 후 멈췄으면 재기동(`watchContainerHealth`) | SmartLifecycle |
 | `LocalAliveChecker` | 생존 신호 확인 (1초 캐시) | `require-local-alive` |
 | `StreamCall` | 발행 결과 (corrId + Future) | |
 | `StreamBadReplyException` | 응답 형식 오류 (corrId 는 읽힘) → 502 | |

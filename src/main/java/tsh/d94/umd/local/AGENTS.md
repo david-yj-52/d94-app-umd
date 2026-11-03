@@ -11,7 +11,7 @@ Home PC 에서 요청 Stream 을 소비해 로컬 백엔드를 **UI 가 직접 �
 
 | 클래스 | 책임 | 관련 |
 |---|---|---|
-| `RequestStreamConsumer` | XREADGROUP 루프. 세마포어 여유만큼만 읽고 가상 스레드에서 처리, Redis 장애 2초 backoff, NOGROUP 재생성 | `consumer-concurrency`, `poll-timeout` |
+| `RequestStreamConsumer` | XREADGROUP 루프. 세마포어 여유만큼만 읽고 가상 스레드에서 처리, Redis 장애 2초 backoff, NOGROUP 재생성. 30s마다 루프 스레드 상태 감시 후 멈췄으면 재기동(`watchLoopHealth`) | `consumer-concurrency`, `poll-timeout` |
 | `LocalRequestProcessor` | 엔트리 1건: 형식 확인 → **deadline 확인** → 라우팅 → 호출 → 응답 발행 → XACK+XDEL | I6, I7 |
 | `LocalRouteResolver` | path-prefix 최장 일치 (경로 경계 단위), 경로 미변경 | `routes`, 404 `UMD_NO_ROUTE` |
 | `LocalHttpDispatcher` | JDK HttpClient 호출. 타임아웃 = 남은 deadline, 리다이렉트 미추종 | 502 `LOCAL_BACKEND_UNAVAILABLE` / `RESPONSE_TOO_LARGE` |

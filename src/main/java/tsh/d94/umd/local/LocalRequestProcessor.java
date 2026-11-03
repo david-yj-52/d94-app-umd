@@ -77,6 +77,7 @@ public class LocalRequestProcessor {
 			return;
 		}
 
+		log.info("▶ {} {} corrId={}", request.getMethod(), request.getPath(), request.getCorrId());
 		Timer.Sample sample = metrics.startDispatch();
 		Optional<UmdProperties.Route> route = routeResolver.resolve(request.getPath());
 		Optional<StreamHttpReply> reply = route.isEmpty()
@@ -86,6 +87,7 @@ public class LocalRequestProcessor {
 			reply.map(StreamHttpReply::getStatus).orElse(0), outcome(route, reply));
 
 		if (reply.isPresent()) {
+			log.info("◀ {} {} corrId={}", reply.get().getStatus(), request.getPath(), request.getCorrId());
 			try {
 				replyPublisher.publish(request.getReplyTo(), reply.get());
 			} catch (RuntimeException e) {

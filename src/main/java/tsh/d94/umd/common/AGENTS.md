@@ -14,7 +14,7 @@
 | `UmdMode` | `SERVER` / `LOCAL` / `BOTH` | `umd.mode` |
 | `ConditionalOnUmdMode` + `OnUmdModeCondition` | 모드별 Bean 등록 조건. 미설정이면 SERVER | 모든 server/local Bean |
 | `UmdProperties` | `umd.*` 바인딩·검증 (`Server`, `Local`, `Route` 하위 클래스) | `application.yml` |
-| `UmdConfig` | `@EnableScheduling`, `@EnableConfigurationProperties` | |
+| `UmdConfig` | `@EnableScheduling`, `@EnableConfigurationProperties`, Lettuce TCP keepalive Bean | |
 | `UmdSettingsValidator` | `poll-timeout` < Redis 명령 타임아웃 검사, 어기면 기동 실패 | I9 |
 | `StreamGroupInitializer` | 기동 시 Consumer Group `home-backend` 멱등 생성 (BUSYGROUP 무시) | 기동 순서 무관 |
 | `ProxyHeaderPolicy` | 헤더 필터: `forRequest` / `withForwarded` / `forLocalDispatch` / `forResponse` | architecture §6 |

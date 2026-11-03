@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -115,6 +116,26 @@ public class RequestStreamConsumer implements SmartLifecycle {
 	@Override
 	public int getPhase() {
 		return PHASE;
+	}
+
+	/**
+	 * {@link #loop()} 가 예외로 죽는 경우를 대비해 주기적으로 loopThread 상태를 확인하고 멈췄으면 재기동한다.
+	 */
+	@Scheduled(initialDelayString = "PT30S", fixedDelayString = "PT30S")
+	public void watchLoopHealth() {
+		if (!running || loopThread == null) {
+			return;
+		}
+		if (!loopThread.isAlive()) {
+			log.warn("Local consumer loop thread stopped unexpectedly — restarting");
+			try {
+				loopThread = Thread.ofPlatform().name("umd-local-consumer").daemon(true).start(this::loop);
+				consecutiveReadFailures.set(0);
+				log.info("Local consumer loop thread restarted successfully");
+			} catch (RuntimeException e) {
+				log.warn("Local consumer loop thread restart failed. cause={}", e.getMessage());
+			}
+		}
 	}
 
 	/** 최근 10초 안에 읽기 실패가 없으면 true */

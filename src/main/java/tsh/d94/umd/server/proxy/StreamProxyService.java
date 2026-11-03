@@ -66,6 +66,7 @@ public class StreamProxyService {
 			ProxyHeaderPolicy.forRequest(request.headers()),
 			request.remoteAddr(), request.scheme(), request.host(), null);
 		StreamCall call = gateway.request(request.method(), request.path(), request.query(), headers, request.body());
+		log.info("▶ {} {} corrId={}", request.method(), request.path(), call.corrId());
 
 		return call.reply().handle((reply, error) -> {
 			ProxyResponse response = error == null
@@ -97,6 +98,7 @@ public class StreamProxyService {
 	}
 
 	private ProxyResponse toResponse(String corrId, StreamHttpReply reply) {
+		log.info("◀ {} corrId={}", reply.getStatus(), corrId);
 		return ProxyResponse.passthrough(reply.getStatus(), reply.getHeaders(), reply.getBody(), corrId);
 	}
 

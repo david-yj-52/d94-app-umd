@@ -10,7 +10,7 @@ services:
   umd-local:
     image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
     container_name: d94-umd-local
-    restart: unless-stopped
+    restart: always
     ports:
       # actuator 만, 호스트 내부 전용 (앱 포트는 publish 하지 않음 — local 은 HTTP API 가 없다)
       - "127.0.0.1:${MANAGEMENT_HOST_PORT:-8092}:8091"

@@ -4,7 +4,7 @@ services:
   umd-server:
     image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
     container_name: d94-umd-server
-    restart: unless-stopped
+    restart: always
     ports:
       # API (UI / Next.js 서버가 호출) — 외부 공개
       - "${APP_PORT:-8081}:8081"

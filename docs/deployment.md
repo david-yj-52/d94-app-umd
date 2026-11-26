@@ -40,7 +40,7 @@
 | 이벤트 | 동작 | 태그 |
 |---|---|---|
 | `deploy` 대상 PR | `mvn -B clean verify` | - |
-| `deploy` push | 테스트 → 빌드 → 푸시 | `sha-xxxxxxx` (⚠ `latest` 는 main 일 때만 붙도록 되어 있어 현재 붙지 않음 → [known-issues](known-issues.md)) |
+| `deploy` push | 테스트 → 빌드 → 푸시 | `latest`, `sha-xxxxxxx` (다른 서비스와 같이 `deploy` 기준 — compose 기본 `IMAGE_TAG=latest` 가 이 이미지를 받는다) |
 | `v1.2.3` 태그 | 테스트 → 빌드 → 푸시 | `1.2.3`, `sha-xxxxxxx` |
 
 - 필요 Secret: `PACKAGES_TOKEN` (classic PAT, `read:packages`) — parent pom(`github-d94`), `d94-lib-core`(`github-lib-core`) 다운로드용

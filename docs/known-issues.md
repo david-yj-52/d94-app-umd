@@ -4,7 +4,6 @@
 
 ## 배포 · 운영
 
-- **`latest` 이미지 태그가 만들어지지 않음:** `.github/workflows/deploy.yml` 은 `deploy` 브랜치 push·PR 과 `v*` 태그에서만 실행되는데, `latest` 태그는 `refs/heads/main` 일 때만 붙습니다. 반면 compose 기본값은 `IMAGE_TAG=latest` 입니다. → 지금은 `.env` 에 `sha-…` 또는 버전 태그를 지정해야 합니다. 조건을 `deploy` 로 바꾸거나 compose 기본값을 바꾸는 결정이 필요합니다.
 - **AP-02 Redis 보안 미적용:** TLS, ACL 사용자(`umd-server`, `umd-local`), 방화벽 → [deployment.md](deployment.md) §2
 - **phase1 아키텍처 문서 보정 제안:** Zuul → Local UMD 라우팅, Redis Insight 포트 15672 → 5540 (workspace 문서).
 

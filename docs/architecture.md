@@ -191,7 +191,7 @@ tsh.d94.umd
 
 | 항목 | server | local |
 |---|---|---|
-| 앱 포트 | 8081 공개, JWT 사전 확인 (OPTIONS·`public-paths` 제외) | publish 안 함, 들어와도 전부 거부 |
+| 앱 포트 | 8081 은 호스트에 publish 안 함. 외부는 Caddy(:443, TLS) → `d94-shared` → 8081. JWT 사전 확인 (OPTIONS·`public-paths` 제외) | publish 안 함, 들어와도 전부 거부 |
 | actuator (8091) | 내부 전용, 인증 없음 | 내부 전용, 인증 없음 |
 | JWT 키 | `JWT_SECRET_KEY` = d94-query 와 동일 | 불필요 |
 | API 토큰 (`Bearer d94_…`) | SHA-256 해시가 Redis `d94:api-token:active:{sha256}` 에 있으면 통과(`ROLE_API_TOKEN`), 없거나 Redis 오류면 401. 키는 delap `token-sync`(`app/d94-mcp`)가 1시간마다 동기화 → 발급·폐기 반영 최대 1시간 지연(폐기 토큰은 d94-query 에서 즉시 401) | 불필요 |

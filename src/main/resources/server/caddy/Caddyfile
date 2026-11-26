@@ -1,0 +1,5 @@
+# AP-01 TLS 종단. 인증서는 Caddy 가 Lets Encrypt 로 자동 발급·갱신 (OCI ingress 80/443 필요)
+api.tongsung.site {
+	# UMD server (d94-shared 네트워크). 경로·헤더 그대로 전달, X-Forwarded-* 추가
+	reverse_proxy d94-umd-server:8081
+}

@@ -1,0 +1,26 @@
+# AP-01 TLS 종단 (Caddy). 서버의 ~/data/app/caddy 로 복사해서 사용 → docs/deployment.md §3
+#   docker compose up -d        (Caddyfile 수정 후: docker compose restart caddy)
+# OCI ingress TCP 80/443 필요 (80: 인증서 발급·갱신 + https 리다이렉트). 인증서는 caddy_data 볼륨에 보관
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - d94-shared
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  d94-shared:
+    external: true

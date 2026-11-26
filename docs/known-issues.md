@@ -5,7 +5,6 @@
 ## 배포 · 운영
 
 - **AP-02 Redis 보안 미적용:** TLS, ACL 사용자(`umd-server`, `umd-local`), 방화벽 → [deployment.md](deployment.md) §2
-- **phase1 아키텍처 문서 보정 제안:** Zuul → Local UMD 라우팅, Redis Insight 포트 15672 → 5540 (workspace 문서).
 
 ## 연동
 

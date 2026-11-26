@@ -38,7 +38,7 @@
 
 | 변수 | 현재 | 미래 (백엔드 서버 배포) |
 |---|---|---|
-| `BACKEND_URL` | UMD(server) 주소 — 예 `https://ap01.example.com:8081` | 백엔드 주소 |
+| `BACKEND_URL` | UMD(server) 주소 — 운영 `https://api.tongsung.site/tsh/api` (AP-01 Caddy TLS → UMD 8081) | 백엔드 주소 |
 | `NEXT_PUBLIC_BACKEND_URL` | 알림 SSE 등 **브라우저가 직접** 붙는 d94-query 주소 (UMD 경유 아님) | 변경 없음 |
 
 > UMD 는 context-path 가 없다. 백엔드에 context-path 가 있다면(예 `/tsh`) `BACKEND_URL` 에 포함한다. 경로는 UMD 를 지나도 바뀌지 않는다.

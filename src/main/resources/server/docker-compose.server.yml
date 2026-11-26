@@ -5,9 +5,9 @@ services:
     image: ${UMD_IMAGE:-ghcr.io/david-yj-52/d94-app-umd}:${IMAGE_TAG:-latest}
     container_name: d94-umd-server
     restart: always
+    # API 8081 은 호스트에 publish 하지 않는다. 외부 HTTPS 는 Caddy(server/caddy, :443)가 받아
+    # d94-shared 네트워크로 d94-umd-server:8081 에 전달 → 평문 우회 경로 없음
     ports:
-      # API (UI / Next.js 서버가 호출) — 외부 공개
-      - "${APP_PORT:-8081}:8081"
       # actuator (health, prometheus) — 인증 없음. 기본 호스트 내부 전용, 외부 공개 금지
       - "${MANAGEMENT_BIND:-127.0.0.1}:${MANAGEMENT_HOST_PORT:-8091}:8091"
     environment:

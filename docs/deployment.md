@@ -17,13 +17,17 @@
 [3] AP-01 (server)                         [4] Home PC (local)
     .env.server 작성                          .env.delap + config/routes.yml 작성
     compose -f docker-compose.server.yml up    compose -f docker-compose.delap.yml up
-                     └──────────── 둘 다 healthy → UI BACKEND_URL = AP-01:8081 ───────┘
+    + server/caddy (TLS :443)
+                     └──── 둘 다 healthy → UI BACKEND_URL = https://api.tongsung.site/tsh/api ────┘
 ```
 
 ## 0. 구성
 
 ```
-[ Next.js 서버 ] ──HTTPS──▶ AP-01 :8081  UMD server (JWT 사전 확인)        :8091 actuator (내부)
+[ Next.js 서버 · MCP 클라이언트 ] ──HTTPS──▶ AP-01 :443 Caddy (api.tongsung.site, Let's Encrypt)
+                                   │ d94-shared 네트워크 (8081 은 호스트에 publish 안 함)
+                                   ▼
+                            AP-01 UMD server :8081 (JWT·d94_ allowlist 사전 확인)   :8091 actuator (내부)
                                    │ XADD d94:umd:req / XREAD d94:umd:rep:umd-ap01
                                    ▼
                             AP-02 :6379  Redis (AOF, TLS/ACL)
@@ -92,7 +96,6 @@ curl -s localhost:8091/actuator/info    # "mode":"server"
 | 변수 | 기본값 | 비고 |
 |---|---|---|
 | `IMAGE_TAG` | `latest` | 롤백 시 이전 태그 |
-| `APP_PORT` | `8081` | 외부 공개 |
 | `MANAGEMENT_BIND`, `MANAGEMENT_HOST_PORT` | `127.0.0.1`, `8091` | actuator. **외부 공개 금지** |
 | `TZ` | `America/New_York` | 로그·JVM 시간대 (IANA 이름). 시간 계산은 UTC 고정이라 표시에만 영향 |
 | `UMD_INSTANCE_ID` | `umd-ap01` | 응답 Stream 이름. server 마다 고유 |
@@ -101,6 +104,21 @@ curl -s localhost:8091/actuator/info    # "mode":"server"
 | `UMD_SERVER_PUBLICPATHS` | `/tsh/api/v1/auth/**` | 토큰 없이 통과시킬 경로(`umd.server.public-paths`, 쉼표 구분). **로그인·회원가입 경로 필수** — 빠지면 UI 로그인이 `401 UMD_UNAUTHORIZED`. 경로는 UI `BACKEND_URL` 기준(context-path 포함). compose `environment:` 에 적힌 변수만 컨테이너에 전달되므로 `.env` 에만 넣으면 안 된다 |
 | `REDIS_HOST` (필수), `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_SSL_ENABLED` | | AP-02 |
 | `JWT_SECRET_KEY` (필수) | | **d94-query 와 같은 값** |
+
+### TLS — Caddy (`src/main/resources/server/caddy` → AP-01 `~/data/app/caddy`)
+
+UMD 는 평문 HTTP(8081)만 말한다. 외부 HTTPS 는 Caddy 가 받아 `d94-shared` 네트워크로 `d94-umd-server:8081` 에 넘긴다.
+UMD compose 는 8081 을 호스트에 publish 하지 않으므로 외부에서 평문으로 직접 닿는 경로가 없다.
+
+```bash
+# 최초 1회: DNS A api.tongsung.site → AP-01, OCI ingress TCP 80/443
+cd ~/data/app/caddy && docker compose up -d          # 인증서 자동 발급 (docker logs caddy → "certificate obtained")
+docker compose restart caddy                          # Caddyfile 수정 후
+```
+
+- 인증서·ACME 계정은 `caddy_data` 볼륨. 컨테이너를 다시 만들어도 재발급하지 않는다. 갱신은 Caddy 가 자동 (만료 30일 전).
+- UMD 를 재시작해도 Caddy 는 그대로 둔다 (컨테이너 이름으로 다시 찾음). UMD 가 내려가 있는 동안 Caddy 는 502.
+- 도메인을 바꾸면 Caddyfile 첫 줄과 UI `BACKEND_URL`·`NEXT_PUBLIC_MCP_URL` 을 같이 바꾼다.
 
 ## 4. Home PC — local 모드
 
@@ -168,7 +186,7 @@ curl -s localhost:8092/actuator/info    # "mode":"local"
 curl -s localhost:8091/actuator/prometheus | grep umd_proxy_rejected_total   # LOCAL_UNAVAILABLE 증가가 멈췄는지
 
 # UI 경로로 한 건 호출 (토큰 필요)
-curl -i -H "Authorization: Bearer <token>" https://<AP-01>:8081/v1/<아무 API>
+curl -i -H "Authorization: Bearer <token>" https://api.tongsung.site/tsh/api/v1/<아무 API>
 #  → 백엔드 응답 그대로 + X-Trace-Id. 503 UMD_LOCAL_UNAVAILABLE 이면 local 미기동/Redis 연결 확인
 ```
 

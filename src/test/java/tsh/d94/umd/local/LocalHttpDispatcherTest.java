@@ -56,6 +56,15 @@ class LocalHttpDispatcherTest {
 					sleep(1_500);
 					respond(exchange, 200, "late", Map.of());
 				}
+				case "/ctx/v1/stream" -> { // SSE 처럼 헤더는 바로, 본문은 끝나지 않는다
+					exchange.getResponseHeaders().add("Content-Type", "text/event-stream");
+					exchange.sendResponseHeaders(200, 0);
+					OutputStream out = exchange.getResponseBody();
+					out.write("event: ping\n\n".getBytes(StandardCharsets.UTF_8));
+					out.flush();
+					sleep(10_000);
+					out.close();
+				}
 				case "/ctx/v1/big" -> respond(exchange, 200, "x".repeat(2048), Map.of("Content-Type", "text/plain"));
 				default -> respond(exchange, 404, "{}", Map.of("Content-Type", "application/json"));
 			}
@@ -143,6 +152,14 @@ class LocalHttpDispatcherTest {
 	@Test
 	void backend_slower_than_deadline_gets_no_reply() {
 		assertThat(dispatcher.dispatch(request("GET", "/v1/slow", null, 300), backendRoute())).isEmpty();
+	}
+
+	/** 헤더 뒤 본문이 끝나지 않아도 deadline 에 놓아준다 (안 그러면 동시 처리 허가가 영영 반납되지 않는다) */
+	@Test
+	void never_ending_body_is_cut_at_deadline() {
+		long started = System.currentTimeMillis();
+		assertThat(dispatcher.dispatch(request("POST", "/v1/stream", null, 500), backendRoute())).isEmpty();
+		assertThat(System.currentTimeMillis() - started).isLessThan(3_000);
 	}
 
 	@Test

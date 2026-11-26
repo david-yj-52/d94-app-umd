@@ -7,6 +7,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -43,6 +48,16 @@ import tsh.d94.umd.common.spec.StreamHttpRequest;
 public class LocalHttpDispatcher {
 
 	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
+
+	/**
+	 * HttpRequest.timeout 은 응답 헤더까지만 지킨다. 본문이 끝나지 않는 응답(SSE 등)은 deadline 에 스트림을 닫아 읽기를 끊는다.
+	 * ponytail: 데몬 스레드 하나 — 닫기 예약만 하므로 부하 없음.
+	 */
+	private static final ScheduledExecutorService BODY_DEADLINE = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread t = new Thread(r, "umd-local-body-deadline");
+		t.setDaemon(true);
+		return t;
+	});
 
 	/** JDK HttpClient 가 직접 설정하는 헤더 (지정하면 예외) */
 	private static final Set<String> CLIENT_MANAGED = Set.of("expect", "host", "content-length", "connection",
@@ -81,7 +96,7 @@ public class LocalHttpDispatcher {
 			HttpResponse<InputStream> response = httpClient.send(
 				buildRequest(request, target, Duration.ofMillis(remaining)),
 				HttpResponse.BodyHandlers.ofInputStream());
-			return Optional.of(toReply(request, response));
+			return Optional.of(toReply(request, response, request.getDeadline() - clock.millis()));
 		} catch (HttpTimeoutException e) {
 			log.warn("로컬 백엔드 응답 시간 초과 (응답 생략). corrId={} {} {}", request.getCorrId(), request.getMethod(),
 				target);
@@ -92,6 +107,14 @@ public class LocalHttpDispatcher {
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			return Optional.empty();
+		}
+	}
+
+	private static void closeQuietly(InputStream in) {
+		try {
+			in.close();
+		} catch (IOException ignored) {
+			// 이미 닫혔거나 끊긴 연결
 		}
 	}
 
@@ -120,12 +143,28 @@ public class LocalHttpDispatcher {
 		return builder.build();
 	}
 
-	private StreamHttpReply toReply(StreamHttpRequest request, HttpResponse<InputStream> response)
+	private StreamHttpReply toReply(StreamHttpRequest request, HttpResponse<InputStream> response, long remainingMillis)
 		throws IOException {
 		long max = properties.getLocal().getMaxResponseBody().toBytes();
 		byte[] body;
-		try (InputStream in = response.body()) {
+		InputStream in = response.body();
+		AtomicBoolean cut = new AtomicBoolean();
+		ScheduledFuture<?> closer = BODY_DEADLINE.schedule(() -> {
+			cut.set(true);
+			closeQuietly(in);
+		}, Math.max(remainingMillis, 0), TimeUnit.MILLISECONDS);
+		try (in) {
 			body = in.readNBytes((int)Math.min(Integer.MAX_VALUE - 8, max + 1));
+		} catch (IOException e) {
+			if (cut.get()) {
+				throw new HttpTimeoutException("응답 본문이 deadline 안에 끝나지 않음");
+			}
+			throw e;
+		} finally {
+			closer.cancel(false);
+		}
+		if (cut.get()) { // 닫힌 스트림이 예외 없이 EOF 로 끝난 경우
+			throw new HttpTimeoutException("응답 본문이 deadline 안에 끝나지 않음");
 		}
 		if (body.length > max) {
 			log.warn("로컬 백엔드 응답 본문 초과. corrId={} max={}", request.getCorrId(), max);

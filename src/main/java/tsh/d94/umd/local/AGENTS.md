@@ -14,7 +14,7 @@ Home PC 에서 요청 Stream 을 소비해 로컬 백엔드를 **UI 가 직접 �
 | `RequestStreamConsumer` | XREADGROUP 루프. 세마포어 여유만큼만 읽고 가상 스레드에서 처리, Redis 장애 2초 backoff, NOGROUP 재생성. 30s마다 루프 스레드 상태 감시 후 멈췄으면 재기동(`watchLoopHealth`) | `consumer-concurrency`, `poll-timeout` |
 | `LocalRequestProcessor` | 엔트리 1건: 형식 확인 → **deadline 확인** → 라우팅 → 호출 → 응답 발행 → XACK+XDEL | I6, I7 |
 | `LocalRouteResolver` | path-prefix 최장 일치 (경로 경계 단위), 경로 미변경 | `routes`, 404 `UMD_NO_ROUTE` |
-| `LocalHttpDispatcher` | JDK HttpClient 호출. 타임아웃 = 남은 deadline, 리다이렉트 미추종 | 502 `LOCAL_BACKEND_UNAVAILABLE` / `RESPONSE_TOO_LARGE` |
+| `LocalHttpDispatcher` | JDK HttpClient 호출. 타임아웃 = 남은 deadline(헤더까지는 `HttpRequest.timeout`, 본문은 deadline 에 스트림을 닫아 끊음 — SSE 처럼 끝나지 않는 본문이 동시 처리 허가를 영영 잡는 것 방지), 리다이렉트 미추종 | 502 `LOCAL_BACKEND_UNAVAILABLE` / `RESPONSE_TOO_LARGE` |
 | `ReplyPublisher` | 응답을 `replyTo` 에 XADD (MAXLEN ~1000) | |
 | `PendingReclaimer` | XPENDING + XCLAIM 으로 ACK 안 된 엔트리 회수 | `reclaim-idle`, `reclaim-interval` |
 | `LocalHeartbeat` | 5초마다 `d94:umd:local:alive` SET EX 15, 종료 시 자기 값만 삭제 | server 즉시 503 판단 |

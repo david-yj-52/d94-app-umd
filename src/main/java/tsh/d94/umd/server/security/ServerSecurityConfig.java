@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,7 +28,7 @@ import tsh.d94.umd.server.proxy.ProxyResponse;
 import tsh.d94.umd.server.proxy.ProxyResponseWriter;
 
 /**
- * [server] 보안: JWT 사전 확인 (Redis 앞 차단용).
+ * [server] 보안: JWT·API 토큰(d94_, Redis allowlist) 사전 확인 (Redis 앞 차단용).
  * <ul>
  *   <li>최종 인증·인가는 백엔드가 같은 토큰(Authorization 원본 전달)으로 다시 검증한다.</li>
  *   <li>CORS 는 백엔드 소유 → 여기서 처리하지 않고, preflight(OPTIONS)는 토큰 없이 통과시켜 백엔드로 전달한다.</li>
@@ -45,6 +46,7 @@ public class ServerSecurityConfig {
 	private final JwtService jwtService;
 	private final UmdProperties properties;
 	private final Environment environment;
+	private final StringRedisTemplate redisTemplate;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -76,7 +78,7 @@ public class ServerSecurityConfig {
 			.exceptionHandling(ex -> ex
 				.authenticationEntryPoint(unauthorizedEntryPoint())
 			)
-			.addFilterBefore(new UmdJwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(new UmdJwtAuthenticationFilter(jwtService, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}

@@ -285,6 +285,36 @@ class ServerProxyIntegrationTest {
 	}
 
 	@Test
+	void api_token_in_redis_allowlist_passes_with_original_header() throws Exception {
+		String apiToken = "d94_cira_allowlisted-token";
+		String key = "d94:api-token:active:" + java.util.HexFormat.of().formatHex(java.security.MessageDigest
+			.getInstance("SHA-256").digest(apiToken.getBytes(StandardCharsets.UTF_8)));
+		redisTemplate.opsForValue().set(key, "1");
+		try {
+			HttpResponse<byte[]> res = send(req("/mcp", false).header("Authorization", "Bearer " + apiToken)
+				.POST(HttpRequest.BodyPublishers.ofString("{}")).build());
+
+			assertThat(res.statusCode()).isEqualTo(200);
+			assertThat(json(res).path("path").asText()).isEqualTo("/mcp");
+			assertThat(json(res).path("headers").path("authorization").get(0).asText()).isEqualTo("Bearer " + apiToken);
+		} finally {
+			redisTemplate.delete(key);
+		}
+	}
+
+	@Test
+	void api_token_not_in_allowlist_is_401_and_not_published() throws Exception {
+		long before = requestStreamSize();
+
+		HttpResponse<byte[]> res = send(req("/mcp", false).header("Authorization", "Bearer d94_cira_fake")
+			.POST(HttpRequest.BodyPublishers.ofString("{}")).build());
+
+		assertThat(res.statusCode()).isEqualTo(401);
+		assertThat(res.headers().firstValue("X-Umd-Error")).hasValue("UMD_UNAUTHORIZED");
+		assertThat(requestStreamSize()).isEqualTo(before);
+	}
+
+	@Test
 	void umd_error_has_cors_headers_only_for_allowed_origin() throws Exception {
 		HttpResponse<byte[]> allowed = send(req("/v1/echo", false).header("Origin", "https://ui.example.com").GET().build());
 		HttpResponse<byte[]> other = send(req("/v1/echo", false).header("Origin", "https://evil.example.com").GET().build());

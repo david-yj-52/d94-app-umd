@@ -17,7 +17,7 @@ AP-01 에서 UI 의 모든 요청(`/**`)을 받아 JWT 사전 확인 → 사전 
 | `proxy.ProxyRequest` / `proxy.ProxyResponse` | 서블릿과 분리된 요청·응답 값 (record) | |
 | `proxy.ProxyResponseWriter` | 서블릿 응답 쓰기. UMD 오류에만 허용 Origin 최소 CORS | `cors-origins` |
 | `security.ServerSecurityConfig` | JWT 사전 확인, OPTIONS·`public-paths` 통과, `JwtService` Import | I3 |
-| `security.UmdJwtAuthenticationFilter` | DB 없이 서명·만료만 검증 (d94-query 와 같은 키) | 401 `UMD_UNAUTHORIZED` |
+| `security.UmdJwtAuthenticationFilter` | DB 없이 서명·만료만 검증 (d94-query 와 같은 키). `Bearer d94_` API 토큰은 Redis allowlist(`d94:api-token:active:{sha256}`) 조회 | 401 `UMD_UNAUTHORIZED` |
 | `StreamRequestGateway` | corrId 발급, 대기 등록 → 발행, `StreamCall` 반환 | |
 | `RequestPublisher` | 요청 Stream XADD (MAXLEN ~10000) | |
 | `PendingReplyRegistry` | corrId → Future. 응답·타임아웃·실패 중 먼저 온 것으로 완료 | `max-pending`, `umd_stream_pending` |

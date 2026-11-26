@@ -6,3 +6,7 @@ umd:
       - id: gateway
         path-prefix: /
         uri: http://gateway-cloud-gateway-1:10001
+      # MCP 서버 (app/d94-mcp). prefix 가 더 길어 우선 — /mcp 그대로 http://d94-mcp:8095/mcp
+      - id: d94-mcp
+        path-prefix: /mcp
+        uri: http://d94-mcp:8095
